@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F4EFE6" />
+  <title>إمداد QR — لوحة التحكم وإدارة التوريدات للمراكز</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    /* ─── Dashboard Shell (Matches Uploaded Screenshot Layout & Colors) ─── */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      min-height: 100dvh;
+    }
+
+    /* Right Sidebar */
+    .admin-sidebar {
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border-soft);
+      padding: 22px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow-y: auto;
+      z-index: 80;
+      transition: transform 0.3s var(--ease-smooth);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 8px 6px 14px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .sidebar-logo-mark {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #27538C 0%, #1B3B66 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 1.7rem;
+      box-shadow: 0 10px 22px rgba(27, 59, 102, 0.22);
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .sidebar-logo-mark::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 21px;
+      border: 2px dashed rgba(231, 107, 69, 0.45);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .nav-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      transition: all 0.22s var(--ease-smooth);
+      text-align: right;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--accent-terracotta) 0%, var(--accent-terracotta-dark) 100%);
+      color: #fff;
+      box-shadow: var(--shadow-terracotta);
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: var(--accent-crimson);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+    }
+    .nav-item.active .nav-badge {
+      background: #fff;
+      color: var(--accent-terracotta);
+    }
+
+    /* Main Workspace */
+    .admin-main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Top Header Bar */
+    .admin-topbar {
+      background: var(--bg-topbar);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+    }
+
+    .topbar-right, .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-soft);
+      font-size: 1.25rem;
+      place-items: center;
+    }
+
+    .top-pill {
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+    .top-pill:hover { background: var(--bg-subtle); }
+
+    .top-pill-alert {
+      background: #FCEAE6;
+      border-color: #F4CFC7;
+      color: #9A3412;
+    }
+    [data-theme="dark"] .top-pill-alert {
+      background: #3D261F;
+      border-color: #5C392E;
+      color: #FDBA74;
+    }
+
+    /* Sub-nav pill bar (Matches screenshot "الرئيسية | لوحة التحكم | المساعد الذكي") */
+    .content-container {
+      padding: 18px 24px 36px;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .subnav-strip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .subnav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .subnav-tab {
+      padding: 7px 16px;
+      border-radius: 11px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+    .subnav-tab:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .subnav-tab.active {
+      background: var(--accent-espresso);
+      color: #fff;
+    }
+
+    /* Page Heading Row */
+    .page-header-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-size: 1.65rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .page-subtitle {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Department Alerts Strip (Matches screenshot "تنبيهات الأقسام") */
+    .alerts-strip-card {
+      padding: 16px 18px;
+    }
+    .alerts-strip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .dept-alert-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease;
+    }
+    .dept-alert-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .pill-sage { background: var(--pastel-sage-solid); border-color: var(--pastel-sage-border); }
+    .pill-peach { background: var(--pastel-peach-solid); border-color: var(--pastel-peach-border); }
+    .pill-honey { background: var(--pastel-honey-solid); border-color: var(--pastel-honey-border); }
+    .pill-periwinkle { background: var(--pastel-periwinkle-solid); border-color: var(--pastel-periwinkle-border); }
+
+    /* 4 Signature Pastel KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .kpi-card {
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 142px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease;
+    }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .kpi-sage { background: var(--pastel-sage); border-color: var(--pastel-sage-border); }
+    .kpi-peach { background: var(--pastel-peach); border-color: var(--pastel-peach-border); }
+    .kpi-honey { background: var(--pastel-honey); border-color: var(--pastel-honey-border); }
+    .kpi-periwinkle { background: var(--pastel-periwinkle); border-color: var(--pastel-periwinkle-border); }
+
+    .kpi-label { font-size: 0.86rem; font-weight: 800; color: var(--text-primary); opacity: 0.85; }
+    .kpi-value { font-size: 2.3rem; font-weight: 900; line-height: 1.1; margin: 10px 0 6px; letter-spacing: -0.5px; }
+    .kpi-meta { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
+
+    /* Overview Split Grid (Followup List + Chart / Live Mission Cinema) */
+    .overview-split {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .followup-item {
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-right: 4px solid var(--accent-terracotta);
+    }
+    .followup-item:hover { transform: translateX(-3px); box-shadow: var(--shadow-sm); }
+
+    /* Analytics Mini Stats & Bar Chart */
+    .chart-mini-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    .chart-mini-box {
+      background: var(--bg-subtle);
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-soft);
+    }
+    .chart-canvas-wrap {
+      width: 100%;
+      height: 215px;
+      position: relative;
+    }
+
+    /* Orders / Missions Cards */
+    .missions-board-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .order-card {
+      padding: 16px;
+      border-radius: 18px;
+      cursor: pointer;
+      border: 1.5px solid var(--border-soft);
+      background: var(--bg-card);
+      transition: all 0.22s ease;
+    }
+    .order-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .order-card.selected {
+      border-color: var(--accent-terracotta);
+      background: var(--bg-card-elevated);
+      box-shadow: 0 8px 24px rgba(231, 107, 69, 0.14);
+    }
+
+    /* Catalog Admin Table / Cards */
+    .catalog-admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .admin-supply-card {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Centers & QR Grid */
+    .centers-qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .qr-preview-box {
+      background: #FFFDF9;
+      border: 2px dashed var(--border-strong);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .qr-preview-box svg {
+      width: 195px;
+      height: 195px;
+      border-radius: 12px;
+    }
+
+    /* Sidebar Backdrop on Mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 15, 11, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 75;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1120px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .overview-split, .missions-board-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 270px;
+        transform: translateX(105%);
+        box-shadow: var(--shadow-lg);
+      }
+      .admin-sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .mobile-menu-btn { display: grid; }
+      .admin-topbar { padding: 10px 14px; }
+      .content-container { padding: 14px 14px 36px; }
+      .chart-mini-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 540px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kpi-card { padding: 14px; min-height: 118px; }
+      .kpi-value { font-size: 1.75rem; }
+      .page-title { font-size: 1.32rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="admin-layout">
+    <!-- Right Fixed Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo-mark">📦</div>
+        <div style="font-size:1.12rem;font-weight:900;" id="sb-brand-name">إمداد QR</div>
+        <div style="font-size:0.76rem;color:var(--text-secondary);" id="sb-brand-sub">إدارة التوريدات والمراكز</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="overview">
+          <span class="nav-item-left"><span>🏠</span><span>الرئيسية</span></span>
+        </button>
+        <button class="nav-item" data-section="orders">
+          <span class="nav-item-left"><span>🚚</span><span>طلبات ومهام التوريد</span></span>
+          <span class="nav-badge" id="nav-orders-badge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-section="catalog">
+          <span class="nav-item-left"><span>📦</span><span>التوريدات والمخزون</span></span>
+          <span class="nav-badge" id="nav-lowstock-badge" style="display:none;background:#D97706;">0</span>
+        </button>
+        <button class="nav-item" data-section="centers">
+          <span class="nav-item-left"><span>📱</span><span>المراكز وأكواد QR</span></span>
+        </button>
+        <button class="nav-item" data-section="settings">
+          <span class="nav-item-left"><span>⚙️</span><span>الإعدادات والربط</span></span>
+        </button>
+      </nav>
+
+      <!-- Live Quick Preview Card -->
+      <div class="card" style="padding:14px;background:var(--pastel-honey);border-color:var(--pastel-honey-border);">
+        <div style="font-weight:900;font-size:0.86rem;margin-bottom:4px;">📱 معاينة صفحة المراكز</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:10px;">جرّب صفحة الطلب بالموبايل كما يراها مدير المركز تماماً</div>
+        <a href="/c/sama-zaytoun" target="_blank" class="btn btn-ink btn-xs" style="width:100%;">فتح بوابة المركز ↗</a>
+      </div>
+    </aside>
+
+    <!-- Main Dashboard Area -->
+    <div class="admin-main">
+      <!-- Top Bar -->
+      <header class="admin-topbar">
+        <div class="topbar-right">
+          <button class="mobile-menu-btn" id="btn-mobile-menu" aria-label="القائمة">
+            <svg class="morph-burger-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <line class="line-top" x1="4" y1="6" x2="20" y2="6" />
+              <line class="line-mid" x1="4" y1="12" x2="20" y2="12" />
+              <line class="line-bot" x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          </button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+              <div style="font-weight:900;font-size:0.98rem;">إمداد QR — مركز التحكم</div>
+              <div style="font-size:0.74rem;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">
+                <span class="pulse-dot" id="admin-sse-dot"></span>
+                <span>مزامنة فورية مع جميع المراكز</span>
+              </div>
+            </div>
+          </div>
+
+          <select id="global-center-filter" class="select-field" style="width:auto;min-width:170px;padding:7px 12px;font-size:0.82rem;border-radius:999px;">
+            <option value="all">🏥 كل المراكز المتصلة</option>
+          </select>
+        </div>
+
+        <div class="topbar-left">
+          <button class="top-pill top-pill-alert" id="btn-top-alerts">
+            🔔 <span>التنبيهات</span>
+            <span class="badge badge-crimson" id="top-alerts-count" style="padding:2px 7px;font-size:0.7rem;">0</span>
+          </button>
+          <button class="top-pill" id="btn-admin-theme">🌙 <span>ليلي</span></button>
+          <button class="top-pill" id="btn-quick-qr">📱 <span>كود QR عام</span></button>
+        </div>
+      </header>
+
+      <div class="content-container">
+        <!-- Sub-navigation Strip (Animated Segmented Control) -->
+        <div class="subnav-strip">
+          <div class="subnav-tabs segmented-track" id="admin-subnav-track">
+            <button class="subnav-tab active" data-section="overview">نظرة عامة</button>
+            <button class="subnav-tab" data-section="orders">لوحة مهام التوريد</button>
+            <button class="subnav-tab" data-section="catalog">إدارة الأصناف</button>
+            <button class="subnav-tab" data-section="centers">أكواد QR للمراكز</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;">
+            <button class="btn btn-soft btn-xs" id="btn-add-center-top">+ مركز جديد</button>
+            <button class="btn btn-ink btn-xs" id="btn-add-supply-top">+ إضافة صنف توريد</button>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════════════════════
+             SECTION 1: OVERVIEW (Matches Reference Screenshot Aesthetic!)
+             ═════════════════════════════════════════════════════════════ -->
+        <section id="sec-overview" class="admin-section" style="display:flex;flex-direction:column;gap:18px;">
+          <div class="page-header-row">
+            <div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);font-weight:700;">نظرة عامة مباشرة</div>
+              <h1 class="page-title">لوحة التحكم</h1>
+              <div class="page-subtitle" id="today-date-label">كل اللي بيحصل في طلبات التوريد والمراكز في مكان واحد</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <a href="/c/sama-zaytoun" target="_blank" class="btn btn-soft btn-sm">📱 فتح صفحة مركز</a>
+              <button class="btn btn-primary btn-sm" id="btn-overview-add-supply">+ إضافة توريدات جديدة</button>
+            </div>
+          </div>
+
+          <!-- Department / Status Alerts Strip -->
+          <div class="card alerts-strip-card reveal">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:900;font-size:1rem;">تنبيهات مهام التوريد والأقسام</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);" id="total-alerts-meta">محدث لحظياً</div>
+            </div>
+            <div class="alerts-strip-grid" id="dept-alerts-grid"></div>
+          </div>
+
+          <!-- 4 Signature Pastel KPI Cards -->
+          <div class="kpi-grid" id="admin-kpi-grid">
+            <div class="kpi-card kpi-sage magnifier-surface hover-lift">
+              <div class="kpi-label">طلبات التوريد النهارده</div>
+              <div class="kpi-value" id="kpi-orders-today">0</div>
+              <div class="kpi-meta" id="kpi-orders-today-meta">إجمالي الوحدات المطلوبة اليوم</div>
+            </div>
+            <div class="kpi-card kpi-peach magnifier-surface hover-lift">
+              <div class="kpi-label">مهام نشطة قيد التنفيذ</div>
+              <div class="kpi-value" id="kpi-active-missions">0</div>
+              <div class="kpi-meta" id="kpi-active-meta">تجهيز وشحن مباشر الآن</div>
+            </div>
+            <div class="kpi-card kpi-honey magnifier-surface hover-lift">
+              <div class="kpi-label">الأصناف المتاحة للمراكز</div>
+              <div class="kpi-value" id="kpi-supplies-count">0</div>
+              <div class="kpi-meta" id="kpi-supplies-meta">إجمالي الرصيد بالمخزن</div>
+            </div>
+            <div class="kpi-card kpi-periwinkle magnifier-surface hover-lift">
+              <div class="kpi-label">طلبات منتظرة اعتماد</div>
+              <div class="kpi-value" id="kpi-pending-count">0</div>
+              <div class="kpi-meta" id="kpi-pending-meta">تحتاج موافقة لبدء التجهيز</div>
+            </div>
+          </div>
+
+          <!-- Live Featured Mission Motion Cinema on Overview -->
+          <div id="overview-live-mission" class="reveal"></div>
+
+          <!-- Split Bottom Row: Needs Follow-Up + QR Scan & Orders Analytics Chart -->
+          <div class="overview-split">
+            <!-- Needs Follow-up Card -->
+            <div class="card" style="padding:18px;">
+              <div style="margin-bottom:14px;">
+                <div style="font-weight:900;font-size:1rem;">محتاج متابعة فورية</div>
+                <div style="font-size:0.78rem;color:var(--text-secondary);">الطلبات والنواقص التي تحتاج قرارك الآن</div>
+              </div>
+              <div id="followup-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+            <!-- Analytics Card (Matches Screenshot "مسح الباركود الثابت") -->
+            <div class="card" style="padding:18px 20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:900;font-size:1rem;">مسح كود QR ونشاط طلبات التوريد</div>
+                  <div style="font-size:0.78rem;color:var(--text-secondary);">متابعة تفاعل مديري المراكز مع بوابة التوريدات</div>
+                </div>
+                <div style="display:flex;gap:4px;padding:4px;background:var(--bg-subtle);border-radius:12px;" class="segmented-track segmented-ink" id="analytics-range-btns">
+                  <button class="btn btn-xs" data-range="today">النهارده</button>
+                  <button class="btn btn-xs seg-active" data-range="7d">7 أيام</button>
+                  <button class="btn btn-xs" data-range="30d">30 يوم</button>
+                </div>
+              </div>
+
+              <div class="chart-mini-stats" id="analytics-mini-stats"></div>
+              <div class="chart-canvas-wrap" id="analytics-chart-slot"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═════════════════════════════════════════════════════════════
+             SECTION 2: ORDERS & LIVE SUPPLY MISSIONS CONTROL
+             ═════════════════════════════════════════════════════════════ -->
+        <section id="sec-orders" class="admin-section" style="display:none;flex-direction:column;gap:16px;">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">طلبات ومهام التوريد المباشرة</h1>
+              <div class="page-subtitle">تحكم كامل في مراحل التجهيز والشحن — كل تحديث يظهر بالأنيمشن فوراً على موبايل مدير المركز</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="orders-status-filters">
+              <button class="btn btn-ink btn-xs" data-ostatus="all">الكل</button>
+              <button class="btn btn-soft btn-xs" data-ostatus="pending">📡 جديدة</button>
+              <button class="btn btn-soft btn-xs" data-ostatus="approved">✅ معتمدة</button>
+              <button class="btn btn-soft btn-xs" data-ostatus="preparing">📦 قيد التجهيز</button>
+              <button class="btn btn-soft btn-xs" data-ostatus="dispatched">🚚 في الطريق</button>
+              <button class="btn btn-soft btn-xs" data-ostatus="delivered">🎉 تم التسليم</button>
+            </div>
+          </div>
+
+          <div class="missions-board-grid">
+            <div id="orders-list-col" style="display:flex;flex-direction:column;gap:12px;"></div>
+            <div id="order-inspector-col" style="position:sticky;top:80px;"></div>
+          </div>
+        </section>
+
+        <!-- ═════════════════════════════════════════════════════════════
+             SECTION 3: SUPPLIES CATALOG & LIVE STOCK MANAGEMENT
+             ═════════════════════════════════════════════════════════════ -->
+        <section id="sec-catalog" class="admin-section" style="display:none;flex-direction:column;gap:16px;">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">كتالوج التوريدات والمخزون</h1>
+              <div class="page-subtitle">أي صنف تضيفه أو تعدل كميته هنا يظهر لحظياً على صفحات المراكز بالكمية المتاحة</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <input type="search" id="admin-supply-search" class="input-field" style="width:230px;padding:8px 13px;" placeholder="🔍 بحث في الأصناف..." />
+              <button class="btn btn-primary btn-sm" id="btn-catalog-add">+ إضافة صنف جديد</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="catalog-filter-chips">
+            <button class="btn btn-ink btn-xs" data-cfilter="all">جميع الأصناف</button>
+            <button class="btn btn-soft btn-xs" data-cfilter="available">🟢 متاح</button>
+            <button class="btn btn-soft btn-xs" data-cfilter="low">🟡 كمية محدودة</button>
+            <button class="btn btn-soft btn-xs" data-cfilter="out">🔴 نافذ الرصيد</button>
+            <button class="btn btn-soft btn-xs" data-cfilter="hidden">👁️ مخفي عن المراكز</button>
+          </div>
+
+          <div class="catalog-admin-grid" id="catalog-admin-grid"></div>
+        </section>
+
+        <!-- ═════════════════════════════════════════════════════════════
+             SECTION 4: CENTERS & QR CODES GENERATOR
+             ═════════════════════════════════════════════════════════════ -->
+        <section id="sec-centers" class="admin-section" style="display:none;flex-direction:column;gap:16px;">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">المراكز وأكواد QR الذكية</h1>
+              <div class="page-subtitle">لكل مركز رابط وكود QR خاص به — يمسحه مدير المركز بالموبايل فتفتح له صفحة الطلب مباشرة</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-soft btn-sm" id="btn-general-qr-card">📱 كود QR عام لكل المراكز</button>
+              <button class="btn btn-primary btn-sm" id="btn-centers-add">+ إضافة مركز جديد</button>
+            </div>
+          </div>
+
+          <div class="centers-qr-grid" id="centers-qr-grid"></div>
+        </section>
+
+        <!-- ═════════════════════════════════════════════════════════════
+             SECTION 5: SETTINGS & NETWORK QR LINKING
+             ═════════════════════════════════════════════════════════════ -->
+        <section id="sec-settings" class="admin-section" style="display:none;flex-direction:column;gap:16px;">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">الإعدادات والربط</h1>
+              <div class="page-subtitle">تحكم في اسم البوابة، رابط الدومين المستخدم داخل أكواد QR، وتنبيهات الصوت</div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:22px;max-width:720px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:6px;">اسم البرنامج / المنصة</label>
+                <input type="text" id="set-brand-name" class="input-field" />
+              </div>
+              <div>
+                <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:6px;">الوصف الفرعي</label>
+                <input type="text" id="set-brand-sub" class="input-field" />
+              </div>
+            </div>
+
+            <div>
+              <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:6px;">الرابط الأساسي لأكواد QR (اختياري)</label>
+              <input type="url" id="set-base-url" class="input-field" dir="ltr" placeholder="https://emdad.yourdomain.com (اتركه فارغاً لاستخدام عنوان الشبكة التلقائي)" />
+              <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:6px;" id="set-lan-hint"></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg-subtle);border-radius:14px;">
+              <label style="display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="set-sound-alerts" style="width:18px;height:18px;accent-color:var(--accent-terracotta);" />
+                <span>🔊 تشغيل نغمة تنبيه عند وصول طلب توريد جديد من المراكز</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="set-show-out" style="width:18px;height:18px;accent-color:var(--accent-terracotta);" />
+                <span>👁️ إظهار الأصناف النافذة على صفحة المراكز بعلامة "نفذت الكمية مؤقتاً"</span>
+              </label>
+            </div>
+
+            <div>
+              <button class="btn btn-primary" id="btn-save-settings">💾 حفظ الإعدادات</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Supply Item -->
+  <div class="modal-backdrop" id="supply-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-weight:900;font-size:1.08rem;" id="supply-modal-title">إضافة صنف توريد جديد</h3>
+        <button class="modal-close" data-close-modal="supply-modal">✕</button>
+      </div>
+      <form class="modal-body" id="supply-form" style="display:flex;flex-direction:column;gap:13px;">
+        <input type="hidden" id="sf-id" />
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">اسم الصنف *</label>
+          <input type="text" id="sf-name" class="input-field" required placeholder="مثال: أفلام أشعة ديجيتال 14×17" />
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">التصنيف</label>
+            <input type="text" id="sf-category" class="input-field" list="cat-suggestions" value="مستلزمات طبية" />
+            <datalist id="cat-suggestions">
+              <option value="أفلام أشعة"></option>
+              <option value="صبغات ومحاليل"></option>
+              <option value="مستلزمات طبية"></option>
+              <option value="مطبوعات وأكياس"></option>
+              <option value="تعقيم ونظافة"></option>
+              <option value="أجهزة وأحبار"></option>
+            </datalist>
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">وحدة الصرف</label>
+            <input type="text" id="sf-unit" class="input-field" value="علبة" placeholder="علبة / كرتونة / جالون / باكيت" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">الكمية المتاحة *</label>
+            <input type="number" id="sf-qty" class="input-field" min="0" value="20" required />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">حد تنبيه النقص</label>
+            <input type="number" id="sf-min" class="input-field" min="0" value="5" />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">أقصى كمية للطلب</label>
+            <input type="number" id="sf-max" class="input-field" min="1" value="15" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">الأيقونة التعبيرية</label>
+            <input type="text" id="sf-icon" class="input-field" value="📦" />
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;" id="icon-quick-picks">
+              <button type="button" class="btn btn-soft btn-xs">🩻</button>
+              <button type="button" class="btn btn-soft btn-xs">🧪</button>
+              <button type="button" class="btn btn-soft btn-xs">🧤</button>
+              <button type="button" class="btn btn-soft btn-xs">💉</button>
+              <button type="button" class="btn btn-soft btn-xs">🛍️</button>
+              <button type="button" class="btn btn-soft btn-xs">📄</button>
+              <button type="button" class="btn btn-soft btn-xs">🧴</button>
+              <button type="button" class="btn btn-soft btn-xs">🧼</button>
+              <button type="button" class="btn btn-soft btn-xs">🖨️</button>
+              <button type="button" class="btn btn-soft btn-xs">📦</button>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">لون بطاقة الصنف</label>
+            <select id="sf-tone" class="select-field">
+              <option value="sage">أخضر زيتوني هادئ</option>
+              <option value="peach">خوخي دافئ</option>
+              <option value="honey">عسلي ذهبي</option>
+              <option value="periwinkle">أزرق سماوي هادئ</option>
+            </select>
+            <div style="margin-top:8px;">
+              <label style="display:block;font-weight:700;font-size:0.78rem;margin-bottom:4px;">صورة الصنف (اختياري)</label>
+              <input type="file" id="sf-image-file" accept="image/*" style="font-size:0.76rem;width:100%;" />
+              <input type="hidden" id="sf-image-url" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">وصف مختصر يظهر لمدير المركز</label>
+          <textarea id="sf-desc" class="textarea-field" rows="2" placeholder="تفاصيل المقاس أو عدد القطع داخل العبوة..."></textarea>
+        </div>
+
+        <label style="display:flex;align-items:center;gap:9px;font-weight:700;cursor:pointer;">
+          <input type="checkbox" id="sf-visible" checked style="width:18px;height:18px;accent-color:var(--accent-terracotta);" />
+          <span>إظهار الصنف فوراً على صفحة طلبات المراكز</span>
+        </label>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
+          <button type="button" class="btn btn-soft" data-close-modal="supply-modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">💾 حفظ ونشر فوراً</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Center -->
+  <div class="modal-backdrop" id="center-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-weight:900;font-size:1.08rem;" id="center-modal-title">إضافة مركز طبي جديد</h3>
+        <button class="modal-close" data-close-modal="center-modal">✕</button>
+      </div>
+      <form class="modal-body" id="center-form" style="display:flex;flex-direction:column;gap:12px;">
+        <input type="hidden" id="cf-id" />
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">اسم المركز *</label>
+          <input type="text" id="cf-name" class="input-field" required placeholder="مثال: مركز سما سكان للأشعة" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">الفرع</label>
+            <input type="text" id="cf-branch" class="input-field" placeholder="مثال: فرع المهندسين" />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">كود الرابط (إنجليزي)</label>
+            <input type="text" id="cf-code" class="input-field" dir="ltr" placeholder="sama-mohandseen" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">اسم مدير المركز</label>
+            <input type="text" id="cf-manager" class="input-field" placeholder="د. / أ. ..." />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">رقم الهاتف</label>
+            <input type="tel" id="cf-phone" class="input-field" placeholder="01xxxxxxxxx" />
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">العنوان التفصيلي</label>
+          <input type="text" id="cf-address" class="input-field" placeholder="الشارع، المنطقة، المحافظة" />
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
+          <button type="button" class="btn btn-soft" data-close-modal="center-modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">💾 حفظ وإنشاء كود QR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Printable Branded QR Poster -->
+  <div class="modal-backdrop" id="qr-modal">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <h3 style="font-weight:900;font-size:1.05rem;" id="qr-modal-title">كود QR لطلب التوريدات</h3>
+        <button class="modal-close" data-close-modal="qr-modal">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <div id="qr-print-area" style="background:linear-gradient(155deg,#FBF8F3 0%,#F4E9D7 100%);border:2px solid #E5D6BE;border-radius:24px;padding:24px 20px;text-align:center;">
+          <div style="display:inline-flex;align-items:center;gap:8px;background:#E76B45;color:#fff;padding:6px 16px;border-radius:999px;font-weight:800;font-size:0.82rem;margin-bottom:10px;">
+            📦 إمداد QR — بوابة طلب التوريدات السريعة
+          </div>
+          <h2 id="qr-poster-name" style="font-size:1.25rem;font-weight:900;color:#1F1A16;"></h2>
+          <p id="qr-poster-branch" style="font-size:0.85rem;color:#6F6458;margin-bottom:14px;"></p>
+          <div id="qr-poster-svg" style="display:inline-block;background:#fff;padding:14px;border-radius:20px;border:2px solid #E9E0D1;box-shadow:0 10px 24px rgba(92,64,51,0.08);"></div>
+          <div style="margin-top:14px;font-weight:800;font-size:0.88rem;color:#1F1A16;">امسح الكود بكاميرا الموبايل لطلب التوريدات فوراً</div>
+          <div id="qr-poster-url" dir="ltr" style="font-size:0.74rem;color:#6F6458;margin-top:6px;word-break:break-all;background:rgba(255,255,255,0.7);padding:6px 10px;border-radius:10px;"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
+          <button class="btn btn-primary btn-sm" id="btn-qr-print">🖨️ طباعة البوستر</button>
+          <button class="btn btn-ink btn-sm" id="btn-qr-copy">📋 نسخ الرابط</button>
+          <a class="btn btn-soft btn-sm" id="btn-qr-download" download="emdad-qr.png">⬇️ تحميل صورة QR</a>
+          <a class="btn btn-soft btn-sm" id="btn-qr-open" target="_blank">📱 فتح الصفحة الآن</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Dispatch Details (Driver Name & ETA) -->
+  <div class="modal-backdrop" id="dispatch-modal">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-header">
+        <h3 style="font-weight:900;font-size:1.05rem;">🚚 إطلاق الشحنة مع المندوب</h3>
+        <button class="modal-close" data-close-modal="dispatch-modal">✕</button>
+      </div>
+      <form class="modal-body" id="dispatch-form" style="display:flex;flex-direction:column;gap:12px;">
+        <input type="hidden" id="df-order-id" />
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">اسم المندوب</label>
+          <input type="text" id="df-driver" class="input-field" placeholder="مثال: طارق حسن" value="طارق حسن" required />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">هاتف المندوب</label>
+            <input type="tel" id="df-phone" class="input-field" placeholder="010xxxxxxxx" value="01055667788" />
+          </div>
+          <div>
+            <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">وقت الوصول المتوقع (دقيقة)</label>
+            <input type="number" id="df-eta" class="input-field" min="5" max="240" value="20" />
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-weight:800;font-size:0.84rem;margin-bottom:5px;">رسالة لمدير المركز (اختياري)</label>
+          <input type="text" id="df-note" class="input-field" placeholder="الشحنة خرجت من المخزن الآن..." />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">🚚 تأكيد خروج المندوب وتحديث شاشة المركز</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/vendor/gsap/gsap.min.js"></script>
+  <script src="/vendor/gsap/ScrollTrigger.min.js"></script>
+  <script src="/js/motion.js"></script>
+  <script src="/js/motion-ui.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
